@@ -24,6 +24,32 @@ const login = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const logout = catchAsync(async (req: Request, res: Response) => {
+    res.cookie("accessToken", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 0,
+        path: "/"
+    });
+
+    res.cookie("refreshToken", "", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 0,
+        path: "/"
+    });
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User logout in successfully",
+        data: null
+    });
+});
+
 export const authController = {
     login,
+    logout
 };
