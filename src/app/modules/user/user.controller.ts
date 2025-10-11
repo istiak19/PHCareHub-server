@@ -6,7 +6,7 @@ import { userService } from './user.service';
 
 const createPatient = catchAsync(async (req: Request, res: Response) => {
     const userInfo = req.body;
-    const user = await userService.createPatient( req);
+    const user = await userService.createPatient(req);
 
     sendResponse(res, {
         success: true,
