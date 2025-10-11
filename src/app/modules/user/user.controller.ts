@@ -5,7 +5,6 @@ import sendResponse from "../../shared/sendResponse";
 import { userService } from './user.service';
 
 const createPatient = catchAsync(async (req: Request, res: Response) => {
-    const userInfo = req.body;
     const user = await userService.createPatient(req);
 
     sendResponse(res, {
@@ -16,6 +15,30 @@ const createPatient = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const createAdmin = catchAsync(async (req: Request, res: Response) => {
+    const user = await userService.createAdmin(req);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Admin created successfully!",
+        data: user
+    });
+});
+
+const createDoctor = catchAsync(async (req: Request, res: Response) => {
+    const user = await userService.createDoctor(req);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Doctor created successfully!",
+        data: user
+    });
+});
+
 export const userController = {
     createPatient,
+    createAdmin,
+    createDoctor
 };
