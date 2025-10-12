@@ -9,7 +9,9 @@ import { role } from "../../../constants/roles";
 const router = Router();
 
 router.get("/", checkAuth(role.admin), userController.getAllUser);
+router.get("/me", checkAuth(role.admin,role.doctor,role.patient), userController.getMeUser);
 router.post("/create-admin", fileUploader.upload.single("file"), validateRequest(UserValidation.createAdminValidation), userController.createAdmin);
 router.post("/create-doctor", fileUploader.upload.single("file"), validateRequest(UserValidation.createDoctorValidation), userController.createDoctor);
+router.get("/:id", checkAuth(role.admin), userController.getByUser);
 
 export const userRouter = router;

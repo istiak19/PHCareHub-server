@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { Request } from "express";
 import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
@@ -5,6 +6,8 @@ import { fileUploader } from "../../helpers/fileUploader";
 import { Prisma, UserRole } from "@prisma/client";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { userSearchableFields } from "./user.constant";
+import { AppError } from "../../errors/AppError";
+import { JwtPayload } from 'jsonwebtoken';
 
 type FilterParams = Record<string, any>;
 
@@ -52,6 +55,32 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
         meta: { page, limit, total, totalPages },
         data: result
     };
+};
+
+const getMeUser = async (email: string) => {
+    const result = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    return result;
+};
+
+const getByUser = async (token: JwtPayload, id: string) => {
+    const isExistUser = await prisma.user.findUnique({
+        where: {
+            id: token.userId
+        }
+    });
+    
+    if (!isExistUser) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
+    const result = await prisma.user.findUnique({
+        where: { id }
+    });
+
+    return result;
 };
 
 const createPatient = async (req: Request) => {
@@ -146,6 +175,8 @@ const createDoctor = async (req: Request) => {
 
 export const userService = {
     getAllUser,
+    getMeUser,
+    getByUser,
     createPatient,
     createAdmin,
     createDoctor
