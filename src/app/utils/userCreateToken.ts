@@ -3,12 +3,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { AppError } from "../errors/AppError";
 import { generateToken, verifyToken } from './jwt';
 import config from '../../config';
-
-interface JwtUser {
-    id: string;
-    email: string;
-    role: string;
-};
+import { JwtUser } from '../../constants';
 
 export const userCreateToken = (user: JwtUser) => {
     const jwtPayload = {
