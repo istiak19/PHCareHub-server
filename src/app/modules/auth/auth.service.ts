@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
-import { AppError } from "../../../errors/AppError";
-import { prisma } from '../../../shared/prisma';
+import { AppError } from "../../errors/AppError";
+import { prisma } from '../../shared/prisma';
 import bcrypt from "bcryptjs";
 
 const login = async (email: string, password: string) => {
