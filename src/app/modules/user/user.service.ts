@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { Request } from "express";
 import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
@@ -5,6 +6,8 @@ import { fileUploader } from "../../helpers/fileUploader";
 import { Prisma, UserRole } from "@prisma/client";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { userSearchableFields } from "./user.constant";
+import { AppError } from "../../errors/AppError";
+import { JwtPayload } from 'jsonwebtoken';
 
 type FilterParams = Record<string, any>;
 
@@ -52,6 +55,124 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
         meta: { page, limit, total, totalPages },
         data: result
     };
+};
+
+const getAllDoctor = async (params: FilterParams, options: IOptions) => {
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
+    const { searchTerm, ...filterData } = params;
+
+    const andConditions: Prisma.DoctorWhereInput[] = [];
+    if (searchTerm) {
+        andConditions.push({
+            OR: userSearchableFields.map(field => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: "insensitive"
+                }
+            }))
+        })
+    };
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    };
+
+    const whereConditions: Prisma.DoctorWhereInput = andConditions.length > 0 ? {
+        AND: andConditions
+    } : {};
+
+    const result = await prisma.doctor.findMany({
+        skip,
+        take: limit,
+        where: whereConditions,
+        orderBy: { [sortBy]: sortOrder }
+    });
+
+    const total = await prisma.doctor.count({ where: whereConditions });
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
+};
+
+const getAllPatient = async (params: FilterParams, options: IOptions) => {
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
+    const { searchTerm, ...filterData } = params;
+
+    const andConditions: Prisma.PatientWhereInput[] = [];
+    if (searchTerm) {
+        andConditions.push({
+            OR: userSearchableFields.map(field => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: "insensitive"
+                }
+            }))
+        })
+    };
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    };
+
+    const whereConditions: Prisma.PatientWhereInput = andConditions.length > 0 ? {
+        AND: andConditions
+    } : {};
+
+    const result = await prisma.patient.findMany({
+        skip,
+        take: limit,
+        where: whereConditions,
+        orderBy: { [sortBy]: sortOrder }
+    });
+
+    const total = await prisma.patient.count({ where: whereConditions });
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
+};
+
+const getMeUser = async (email: string) => {
+    const result = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    return result;
+};
+
+const getByUser = async (token: JwtPayload, id: string) => {
+    const isExistUser = await prisma.user.findUnique({
+        where: {
+            id: token.userId
+        }
+    });
+
+    if (!isExistUser) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
+    const result = await prisma.user.findUnique({
+        where: { id }
+    });
+
+    return result;
 };
 
 const createPatient = async (req: Request) => {
@@ -146,6 +267,10 @@ const createDoctor = async (req: Request) => {
 
 export const userService = {
     getAllUser,
+    getMeUser,
+    getByUser,
+    getAllDoctor,
+    getAllPatient,
     createPatient,
     createAdmin,
     createDoctor
