@@ -3,10 +3,11 @@ import { userController } from "./user.controller";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { UserValidation } from "./user.validation";
 import { fileUploader } from "../../helpers/fileUploader";
+import { checkAuth } from "../../middlewares/checkAuth";
 
 const router = Router();
 
-router.get("/", userController.getAllUser);
+router.get("/", checkAuth("PATIENT"), userController.getAllUser);
 router.post("/create-admin", fileUploader.upload.single("file"), validateRequest(UserValidation.createAdminValidation), userController.createAdmin);
 router.post("/create-doctor", fileUploader.upload.single("file"), validateRequest(UserValidation.createDoctorValidation), userController.createDoctor);
 
