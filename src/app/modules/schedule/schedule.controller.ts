@@ -31,7 +31,21 @@ const scheduleForDoctor = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const deleteSchedule = catchAsync(async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    const id=req.params.id;
+    const schedule = await scheduleService.deleteSchedule(decodedToken, id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.CREATED,
+        message: "Schedule delete successfully!",
+        data: schedule
+    });
+});
+
 export const scheduleController = {
     createSchedule,
     scheduleForDoctor,
+    deleteSchedule
 };

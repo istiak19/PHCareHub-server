@@ -161,7 +161,16 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
     };
 };
 
+const deleteSchedule = async (token: JwtPayload, id: string) => {
+    const schedule = await prisma.schedule.delete({
+        where: { id }
+    });
+
+    return schedule;
+};
+
 export const scheduleService = {
     createSchedule,
-    scheduleForDoctor
+    scheduleForDoctor,
+    deleteSchedule
 };
