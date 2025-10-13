@@ -141,6 +141,19 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
         })
     };
 
+    const doctorSchedules = await prisma.doctorSchedules.findMany({
+        where: {
+            doctor: {
+                email: token.email
+            }
+        },
+        select: {
+            scheduleId: true
+        }
+    });
+
+    const doctorScheduleIds = doctorSchedules.map(schedule => schedule.scheduleId);
+
     const whereConditions: Prisma.ScheduleWhereInput = andConditions.length > 0 ? {
         AND: andConditions
     } : {};
@@ -148,11 +161,23 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
     const result = await prisma.schedule.findMany({
         skip,
         take: limit,
-        where: whereConditions,
+        where: {
+            ...whereConditions,
+            id: {
+                notIn: doctorScheduleIds
+            }
+        },
         orderBy: { [sortBy]: sortOrder }
     });
 
-    const total = await prisma.schedule.count({ where: whereConditions });
+    const total = await prisma.schedule.count({
+        where: {
+            ...whereConditions,
+            id: {
+                notIn: doctorScheduleIds
+            }
+        }
+    });
     const totalPages = Math.ceil(total / limit);
 
     return {
