@@ -19,33 +19,35 @@ const createDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// const scheduleForDoctor = catchAsync(async (req: Request, res: Response) => {
-//     const decodedToken = req.user as JwtPayload;
-//     const filters = pick(req.query, ["startDateTime", "endDateTime"])
-//     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"])
-//     const schedule = await scheduleService.scheduleForDoctor(decodedToken, filters, options);
+const getDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    const filters = pick(req.query, ["startDateTime", "endDateTime", "name", "email", "gender", "designation", "currentWorkingPlace"]);
+    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
+    const schedule = await doctorScheduleService.getDoctorSchedule(decodedToken, filters, options);
 
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: httpStatus.CREATED,
-//         message: "Schedule retrieved successfully!",
-//         data: schedule
-//     });
-// });
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctor schedule retrieved successfully!",
+        data: schedule
+    });
+});
 
-// const deleteSchedule = catchAsync(async (req: Request, res: Response) => {
-//     const decodedToken = req.user as JwtPayload;
-//     const id = req.params.id;
-//     const schedule = await scheduleService.deleteSchedule(decodedToken, id);
+const deleteDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    const id = req.params.id;
+    const schedule = await doctorScheduleService.deleteDoctorSchedule(decodedToken, id);
 
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: httpStatus.CREATED,
-//         message: "Schedule delete successfully!",
-//         data: schedule
-//     });
-// });
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctor schedule delete successfully!",
+        data: schedule
+    });
+});
 
 export const doctorScheduleController = {
-    createDoctorSchedule
+    createDoctorSchedule,
+    getDoctorSchedule,
+    deleteDoctorSchedule
 };

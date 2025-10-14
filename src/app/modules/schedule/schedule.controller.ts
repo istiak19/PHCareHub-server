@@ -25,7 +25,7 @@ const scheduleForDoctor = catchAsync(async (req: Request, res: Response) => {
 
     sendResponse(res, {
         success: true,
-        statusCode: httpStatus.CREATED,
+        statusCode: httpStatus.OK,
         message: "Schedule retrieved successfully!",
         data: schedule
     });
@@ -38,7 +38,7 @@ const deleteSchedule = catchAsync(async (req: Request, res: Response) => {
 
     sendResponse(res, {
         success: true,
-        statusCode: httpStatus.CREATED,
+        statusCode: httpStatus.OK,
         message: "Schedule delete successfully!",
         data: schedule
     });

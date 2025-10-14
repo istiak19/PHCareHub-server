@@ -4,9 +4,8 @@ import { ISchedule } from "./schedule.interface";
 import { JwtPayload } from "jsonwebtoken";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { Prisma } from "@prisma/client";
+import { FilterParams } from "../../../constants";
 // import { zonedTimeToUtc } from "date-fns-tz";
-
-type FilterParams = Record<string, any>;
 
 const createSchedule = async (payload: ISchedule) => {
     const { startTime, endTime, startDate, endDate } = payload;

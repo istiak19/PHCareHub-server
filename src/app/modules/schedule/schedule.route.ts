@@ -6,7 +6,7 @@ import { role } from "../../../constants/roles";
 const router = Router();
 
 router.get("/", checkAuth(role.doctor, role.admin), scheduleController.scheduleForDoctor);
-router.post("/create-schedule", scheduleController.createSchedule);
-router.delete("/:id", scheduleController.deleteSchedule);
+router.post("/create-schedule", checkAuth(role.admin), scheduleController.createSchedule);
+router.delete("/:id", checkAuth(role.admin), scheduleController.deleteSchedule);
 
 export const scheduleRouter = router;
