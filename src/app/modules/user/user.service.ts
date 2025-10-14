@@ -8,8 +8,7 @@ import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { userSearchableFields } from "./user.constant";
 import { AppError } from "../../errors/AppError";
 import { JwtPayload } from 'jsonwebtoken';
-
-type FilterParams = Record<string, any>;
+import { FilterParams } from '../../../constants';
 
 const getAllUser = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)

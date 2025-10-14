@@ -3,3 +3,5 @@ export interface JwtUser {
     email: string;
     role: string;
 };
+
+export type FilterParams = Record<string, any>;
