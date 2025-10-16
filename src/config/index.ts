@@ -18,4 +18,4 @@ export default {
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
         JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN
     },
-}
+};

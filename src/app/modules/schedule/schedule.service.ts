@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { prisma } from "../../shared/prisma";
 import { addMinutes, addHours, format } from "date-fns";
 import { ISchedule } from "./schedule.interface";
@@ -5,6 +6,7 @@ import { JwtPayload } from "jsonwebtoken";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { Prisma } from "@prisma/client";
 import { FilterParams } from "../../../constants";
+import { AppError } from "../../errors/AppError";
 // import { zonedTimeToUtc } from "date-fns-tz";
 
 const createSchedule = async (payload: ISchedule) => {
@@ -186,6 +188,16 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
 };
 
 const deleteSchedule = async (token: JwtPayload, id: string) => {
+    const doctorData = await prisma.doctor.findUnique({
+        where: {
+            email: token.email
+        }
+    });
+
+    if (!doctorData) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
     const schedule = await prisma.schedule.delete({
         where: { id }
     });
