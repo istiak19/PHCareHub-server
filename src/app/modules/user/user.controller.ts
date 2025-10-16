@@ -4,7 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { userService } from './user.service';
 import pick from '../../helpers/pick';
-import { userFilterableFields } from './user.constant';
+import { doctorFilterableFields, userFilterableFields } from './user.constant';
 import { JwtPayload } from 'jsonwebtoken';
 
 const getAllUser = catchAsync(async (req: Request, res: Response) => {
@@ -21,7 +21,7 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
-    const filters = pick(req.query, userFilterableFields) // searching , filtering
+    const filters = pick(req.query, doctorFilterableFields) // searching , filtering
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
     const user = await userService.getAllDoctor(filters, options);
 
@@ -29,6 +29,19 @@ const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
         success: true,
         statusCode: httpStatus.OK,
         message: "Doctors retrieved successfully!",
+        data: user
+    });
+});
+
+const updateDoctor = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const info = req.body;
+    const user = await userService.updateDoctor(id, info);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctor updated successfully!",
         data: user
     });
 });
@@ -112,5 +125,6 @@ export const userController = {
     getAllPatient,
     createPatient,
     createAdmin,
-    createDoctor
+    createDoctor,
+    updateDoctor
 };

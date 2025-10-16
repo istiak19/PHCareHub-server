@@ -5,10 +5,11 @@ import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helpers/fileUploader";
 import { Prisma, UserRole } from "@prisma/client";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
-import { userSearchableFields } from "./user.constant";
+import { doctorSearchableFields, userSearchableFields } from "./user.constant";
 import { AppError } from "../../errors/AppError";
 import { JwtPayload } from 'jsonwebtoken';
 import { FilterParams } from '../../../constants';
+import { IDoctorUpdateInput } from './user.interface';
 
 const getAllUser = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -58,17 +59,32 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
 
 const getAllDoctor = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
-    const { searchTerm, ...filterData } = params;
+    const { searchTerm, specialties, ...filterData } = params;
 
     const andConditions: Prisma.DoctorWhereInput[] = [];
     if (searchTerm) {
         andConditions.push({
-            OR: userSearchableFields.map(field => ({
+            OR: doctorSearchableFields.map(field => ({
                 [field]: {
                     contains: searchTerm,
                     mode: "insensitive"
                 }
             }))
+        })
+    };
+
+    if (specialties && specialties.length > 0) {
+        andConditions.push({
+            doctorSpecialties: {
+                some: {
+                    specialities: {
+                        title: {
+                            contains: specialties,
+                            mode: "insensitive"
+                        }
+                    }
+                }
+            }
         })
     };
 
@@ -90,7 +106,14 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
         skip,
         take: limit,
         where: whereConditions,
-        orderBy: { [sortBy]: sortOrder }
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialities: true
+                }
+            }
+        }
     });
 
     const total = await prisma.doctor.count({ where: whereConditions });
@@ -100,6 +123,60 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
         meta: { page, limit, total, totalPages },
         data: result
     };
+};
+
+const updateDoctor = async (id: string, payload: Partial<IDoctorUpdateInput>) => {
+    const isExistDoctor = await prisma.doctor.findUnique({
+        where: { id }
+    });
+
+    if (!isExistDoctor) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
+    };
+
+    const { specialties, ...doctorData } = payload;
+
+    return await prisma.$transaction(async (tnx) => {
+        if (specialties && specialties.length > 0) {
+            const deleteSpecialtyIds = specialties.filter((specialty) => specialty.isDeleted);
+
+            for (const specialty of deleteSpecialtyIds) {
+                await tnx.doctorSpecialties.deleteMany({
+                    where: {
+                        doctorId: id,
+                        specialitiesId: specialty.specialtyId
+                    }
+                })
+            }
+
+            const createSpecialtyIds = specialties.filter((specialty) => !specialty.isDeleted);
+
+            for (const specialty of createSpecialtyIds) {
+                await tnx.doctorSpecialties.createMany({
+                    data: {
+                        doctorId: id,
+                        specialitiesId: specialty.specialtyId
+                    }
+                })
+            }
+        };
+
+        const updatedData = await tnx.doctor.update({
+            where: {
+                id: id
+            },
+            data: doctorData,
+            include: {
+                doctorSpecialties: {
+                    include: {
+                        specialities: true
+                    }
+                }
+            }
+        });
+
+        return updatedData;
+    });
 };
 
 const getAllPatient = async (params: FilterParams, options: IOptions) => {
@@ -272,5 +349,6 @@ export const userService = {
     getAllPatient,
     createPatient,
     createAdmin,
-    createDoctor
+    createDoctor,
+    updateDoctor
 };
