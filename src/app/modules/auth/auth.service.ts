@@ -9,13 +9,15 @@ const login = async (email: string, password: string) => {
     };
 
     const user = await prisma.user.findUnique({ where: { email } });
+    
     if (!user || !user.password) {
         throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials.");
     };
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Incorrect email or password.");
+        throw new AppError(httpStatus.UNAUTHORIZED, "Incorrect password.");
     };
 
     return user;

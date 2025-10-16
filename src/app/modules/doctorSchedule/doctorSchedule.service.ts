@@ -30,12 +30,7 @@ const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: st
     return doctorSchedule;
 };
 
-const getDoctorSchedule = async (
-    user: JwtPayload,
-    params: FilterParams,
-    options: IOptions
-) => {
-    // 🔹 1. Validate doctor
+const getDoctorSchedule = async (user: JwtPayload, params: FilterParams, options: IOptions) => {
     const doctorData = await prisma.doctor.findUnique({
         where: { email: user.email },
     });
@@ -65,7 +60,7 @@ const getDoctorSchedule = async (
                 lte: filterEndDateTime,
             };
         };
-    } else if (name || email || gender||designation||currentWorkingPlace) {
+    } else if (name || email || gender || designation || currentWorkingPlace) {
         whereConditions.doctor = {};
 
         if (name) {
