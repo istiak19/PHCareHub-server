@@ -20,32 +20,6 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
-    const filters = pick(req.query, doctorFilterableFields) // searching , filtering
-    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
-    const user = await userService.getAllDoctor(filters, options);
-
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.OK,
-        message: "Doctors retrieved successfully!",
-        data: user
-    });
-});
-
-const updateDoctor = catchAsync(async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const info = req.body;
-    const user = await userService.updateDoctor(id, info);
-
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.OK,
-        message: "Doctor updated successfully!",
-        data: user
-    });
-});
-
 const getAllPatient = catchAsync(async (req: Request, res: Response) => {
     const filters = pick(req.query, userFilterableFields) // searching , filtering
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
@@ -121,10 +95,8 @@ export const userController = {
     getAllUser,
     getMeUser,
     getByUser,
-    getAllDoctor,
     getAllPatient,
     createPatient,
     createAdmin,
     createDoctor,
-    updateDoctor
 };
