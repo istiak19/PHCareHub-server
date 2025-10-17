@@ -5,7 +5,9 @@ import { doctorController } from "./doctor.controller";
 
 const router = Router();
 
-router.get("/doctor", checkAuth(role.admin, role.doctor, role.patient), doctorController.getAllDoctor);
+router.get("/", checkAuth(role.admin, role.doctor, role.patient), doctorController.getAllDoctor);
+router.get("/:id", checkAuth(role.admin, role.doctor, role.patient), doctorController.getByDoctor);
 router.patch("/:id", doctorController.updateDoctor);
+router.delete("/:id", doctorController.deleteDoctor);
 
 export const doctorRouter = router;

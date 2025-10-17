@@ -75,6 +75,14 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
     };
 };
 
+const getByDoctor = async (id: string) => {
+    const doctor = await prisma.doctor.findUnique({
+        where: { id }
+    });
+
+    return doctor;
+};
+
 const updateDoctor = async (id: string, payload: Partial<IDoctorUpdateInput>) => {
     const isExistDoctor = await prisma.doctor.findUnique({
         where: { id }
@@ -129,7 +137,17 @@ const updateDoctor = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
     });
 };
 
+const deleteDoctor = async (id: string) => {
+    const doctor = await prisma.doctor.delete({
+        where: { id }
+    });
+
+    return doctor;
+};
+
 export const doctorService = {
     getAllDoctor,
-    updateDoctor
+    getByDoctor,
+    updateDoctor,
+    deleteDoctor
 };
