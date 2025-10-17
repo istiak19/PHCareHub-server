@@ -20,19 +20,6 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getAllPatient = catchAsync(async (req: Request, res: Response) => {
-    const filters = pick(req.query, userFilterableFields) // searching , filtering
-    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
-    const user = await userService.getAllPatient(filters, options);
-
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.OK,
-        message: "Patients retrieved successfully!",
-        data: user
-    });
-});
-
 const getMeUser = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
     const user = await userService.getMeUser(decodedToken.email);
@@ -54,17 +41,6 @@ const getByUser = catchAsync(async (req: Request, res: Response) => {
         success: true,
         statusCode: httpStatus.OK,
         message: "User retrieved successfully!",
-        data: user
-    });
-});
-
-const createPatient = catchAsync(async (req: Request, res: Response) => {
-    const user = await userService.createPatient(req);
-
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.CREATED,
-        message: "Patient created successfully!",
         data: user
     });
 });
@@ -95,8 +71,6 @@ export const userController = {
     getAllUser,
     getMeUser,
     getByUser,
-    getAllPatient,
-    createPatient,
     createAdmin,
     createDoctor,
 };
