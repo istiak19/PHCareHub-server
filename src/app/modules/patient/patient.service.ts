@@ -58,7 +58,10 @@ const getAllPatient = async (params: FilterParams, options: IOptions) => {
 
 const getByPatient = async (id: string) => {
     const result = await prisma.patient.findUnique({
-        where: { id }
+        where: {
+            id,
+            isDeleted: false
+        }
     });
 
     return result;

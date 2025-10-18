@@ -44,7 +44,12 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
         skip,
         take: limit,
         where: whereConditions,
-        orderBy: { [sortBy]: sortOrder }
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            doctor: true,
+            patient: true,
+            admin: true
+        }
     });
 
     const total = await prisma.user.count({ where: whereConditions });
