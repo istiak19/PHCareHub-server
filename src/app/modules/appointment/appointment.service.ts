@@ -16,11 +16,11 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
         }
     });
 
-    const isBookedOrNot = await prisma.doctorSchedules.findFirstOrThrow({
+    await prisma.doctorSchedules.findFirstOrThrow({
         where: {
             doctorId: payload.doctorId,
             scheduleId: payload.scheduleId,
-            isBlocked: false
+            isBook: false
         }
     });
 
@@ -44,7 +44,7 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
                 }
             },
             data: {
-                isBlocked: true
+                isBook: true
             }
         });
 
