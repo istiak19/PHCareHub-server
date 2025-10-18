@@ -82,33 +82,33 @@ const getByUser = async (token: JwtPayload, id: string) => {
     return result;
 };
 
-const createPatient = async (req: Request) => {
-    if (req.file) {
-        const uploadResult = await fileUploader.uploadToCloudinary(req.file);
-        req.body.patient.profilePhoto = uploadResult?.secure_url
-    };
+// const createPatient = async (req: Request) => {
+//     if (req.file) {
+//         const uploadResult = await fileUploader.uploadToCloudinary(req.file);
+//         req.body.patient.profilePhoto = uploadResult?.secure_url
+//     };
 
-    const hashPassword = await bcrypt.hash(req.body.password, 10);
-    const result = await prisma.$transaction(async (tnx) => {
-        const user = await tnx.user.create({
-            data: {
-                email: req.body.patient.email,
-                password: hashPassword
-            }
-        });
+//     const hashPassword = await bcrypt.hash(req.body.password, 10);
+//     const result = await prisma.$transaction(async (tnx) => {
+//         const user = await tnx.user.create({
+//             data: {
+//                 email: req.body.patient.email,
+//                 password: hashPassword
+//             }
+//         });
 
-        const patient = await tnx.patient.create({
-            data: req.body.patient
-        });
+//         const patient = await tnx.patient.create({
+//             data: req.body.patient
+//         });
 
-        return {
-            user,
-            patient,
-        };
-    });
+//         return {
+//             user,
+//             patient,
+//         };
+//     });
 
-    return result;
-};
+//     return result;
+// };
 
 const createAdmin = async (req: Request) => {
     if (req.file) {
@@ -176,7 +176,7 @@ export const userService = {
     getAllUser,
     getMeUser,
     getByUser,
-    createPatient,
+    // createPatient,
     createAdmin,
     createDoctor
 };

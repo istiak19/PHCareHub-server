@@ -145,9 +145,14 @@ const deleteDoctor = async (id: string) => {
     return doctor;
 };
 
+const getAISuggestions = async (payload: { symptoms: string }) => {
+    console.log(payload)
+};
+
 export const doctorService = {
     getAllDoctor,
     getByDoctor,
     updateDoctor,
-    deleteDoctor
+    deleteDoctor,
+    getAISuggestions
 };
