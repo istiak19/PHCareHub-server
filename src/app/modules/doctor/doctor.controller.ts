@@ -56,9 +56,21 @@ const deleteDoctor = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getAISuggestions = catchAsync(async (req: Request, res: Response) => {
+    const result = await doctorService.getAISuggestions(req.body);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'AI suggestions retrieved successfully',
+        data: result,
+    });
+});
+
 export const doctorController = {
     getAllDoctor,
     getByDoctor,
     updateDoctor,
-    deleteDoctor
+    deleteDoctor,
+    getAISuggestions
 };
