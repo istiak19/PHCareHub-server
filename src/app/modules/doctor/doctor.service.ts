@@ -64,6 +64,11 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
                 include: {
                     specialities: true
                 }
+            },
+            doctorSchedules: {
+                include: {
+                    schedule: true
+                }
             }
         }
     });
@@ -79,7 +84,22 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
 
 const getByDoctor = async (id: string) => {
     const doctor = await prisma.doctor.findUnique({
-        where: { id }
+        where: {
+            id,
+            isDeleted: false
+        },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialities: true
+                }
+            },
+            doctorSchedules: {
+                include: {
+                    schedule: true
+                }
+            }
+        },
     });
 
     return doctor;

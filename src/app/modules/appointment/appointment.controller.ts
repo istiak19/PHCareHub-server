@@ -2,12 +2,14 @@ import httpStatus from 'http-status';
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
-import { doctorFilterableFields } from '../user/user.constant';
-import pick from '../../helpers/pick';
 import { appointmentService } from './appointment.service';
+import { JwtPayload } from 'jsonwebtoken';
 
 const createAppointment = catchAsync(async (req: Request, res: Response) => {
-    const appointment = await appointmentService.createAppointment();
+    const decodedToken = req.user as JwtPayload;
+    const appointmentInfo = req.body;
+    const appointment = await appointmentService.createAppointment(decodedToken, appointmentInfo);
+    
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
