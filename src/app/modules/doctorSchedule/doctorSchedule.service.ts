@@ -31,7 +31,7 @@ const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: st
 };
 
 const getDoctorSchedule = async (user: JwtPayload, params: FilterParams, options: IOptions) => {
-    const doctorData = await prisma.doctor.findUnique({
+    const doctorData = await prisma.user.findUnique({
         where: { email: user.email },
     });
 
