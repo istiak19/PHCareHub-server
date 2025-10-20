@@ -18,7 +18,10 @@ export default {
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
         JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN
     },
-    openapi:{
-        OPENROUTER_API_KEY:process.env.OPENROUTER_API_KEY
+    openapi: {
+        OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY
+    },
+    stripe: {
+        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY
     }
 };
