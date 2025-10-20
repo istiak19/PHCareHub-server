@@ -6,7 +6,6 @@ import { fileUploader } from "../../helpers/fileUploader";
 import { Prisma, UserRole } from "@prisma/client";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { AppError } from "../../errors/AppError";
-import { JwtPayload } from 'jsonwebtoken';
 import { FilterParams } from '../../../constants';
 import { userSearchableFields } from '../user/user.constant';
 

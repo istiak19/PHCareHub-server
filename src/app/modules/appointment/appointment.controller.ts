@@ -4,12 +4,13 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { appointmentService } from './appointment.service';
 import { JwtPayload } from 'jsonwebtoken';
+import pick from '../../helpers/pick';
 
 const createAppointment = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
     const appointmentInfo = req.body;
     const appointment = await appointmentService.createAppointment(decodedToken, appointmentInfo);
-    
+
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
@@ -18,18 +19,19 @@ const createAppointment = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
-//     const filters = pick(req.query, doctorFilterableFields) // searching , filtering
-//     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
-//     const doctor = await doctorService.getAllDoctor(filters, options);
+const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
+    const filters = pick(req.query, ["paymentStatus", "status"]) // searching , filtering
+    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
+    const decodedToken = req.user as JwtPayload;
+    const doctor = await appointmentService.getMyAppointment(decodedToken, filters, options);
 
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: httpStatus.OK,
-//         message: "Doctors retrieved successfully!",
-//         data: doctor
-//     });
-// });
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctors retrieved successfully!",
+        data: doctor
+    });
+});
 
 // const getByDoctor = catchAsync(async (req: Request, res: Response) => {
 //     const id = req.params.id;
@@ -69,5 +71,6 @@ const createAppointment = catchAsync(async (req: Request, res: Response) => {
 // });
 
 export const appointmentController = {
-    createAppointment
+    createAppointment,
+    getMyAppointment
 };

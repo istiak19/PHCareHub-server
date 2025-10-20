@@ -1,7 +1,11 @@
+import { role } from './../../../constants/roles';
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
 import { v4 as uuidv4 } from 'uuid';
 import { stripe } from "../../helpers/stripe";
+import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
+import { FilterParams } from "../../../constants";
+import { Prisma } from "@prisma/client";
 
 const createAppointment = async (token: JwtPayload, payload: { doctorId: string, scheduleId: string }) => {
     const patientData = await prisma.patient.findUniqueOrThrow({
@@ -89,6 +93,58 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
     return result;
 };
 
+const getMyAppointment = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
+    const { ...filterData } = params;
+
+    const andConditions: Prisma.AppointmentWhereInput[] = [];
+
+    if (token.role === role.patient) {
+        andConditions.push({
+            patient: {
+                email: token.email
+            }
+        })
+    } else {
+        andConditions.push({
+            doctor: {
+                email: token.email
+            }
+        })
+    };
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    };
+
+    const whereConditions: Prisma.AppointmentWhereInput = andConditions.length > 0 ? {
+        AND: andConditions
+    } : {};
+
+    const result = await prisma.appointment.findMany({
+        skip,
+        take: limit,
+        where: whereConditions,
+        orderBy: { [sortBy]: sortOrder },
+        include: token.role === role.doctor ? { patient: true } : { doctor: true }
+    });
+
+    const total = await prisma.appointment.count({ where: whereConditions });
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
+};
+
 export const appointmentService = {
-    createAppointment
+    createAppointment,
+    getMyAppointment
 };
