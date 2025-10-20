@@ -1,6 +1,7 @@
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
 import { v4 as uuidv4 } from 'uuid';
+import { stripe } from "../../helpers/stripe";
 
 const createAppointment = async (token: JwtPayload, payload: { doctorId: string, scheduleId: string }) => {
     const patientData = await prisma.patient.findUniqueOrThrow({
@@ -50,7 +51,7 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
 
         const transactionId = uuidv4();
 
-        await tnx.payment.create({
+        const paymentData = await tnx.payment.create({
             data: {
                 appointmentId: appointmentData.id,
                 transactionId,
@@ -58,7 +59,31 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
             }
         });
 
-        return appointmentData;
+        const session = await stripe.checkout.sessions.create({
+            mode: "payment",
+            payment_method_types: ["card"],
+            customer_email: token.email,
+            line_items: [
+                {
+                    price_data: {
+                        currency: "bdt",
+                        product_data: {
+                            name: `Doctor: ${doctor.name}`,
+                        },
+                        unit_amount: doctor.appointmentFee * 100,
+                    },
+                    quantity: 1,
+                },
+            ],
+            success_url: `${process.env.CLIENT_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+            metadata: {
+                appointmentId: appointmentData.id,
+                paymentId: paymentData.id
+            },
+        });
+
+        return { paymentUrl: session.url };
     });
 
     return result;
