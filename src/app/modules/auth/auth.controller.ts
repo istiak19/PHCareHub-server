@@ -7,8 +7,8 @@ import { userCreateToken } from '../../utils/userCreateToken';
 import { setCookies } from '../../utils/setCookies';
 
 const login = catchAsync(async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const user = await authService.login(email, password);
+    const userInfo = req.body;
+    const user = await authService.login(userInfo);
     const userTokens = await userCreateToken(user);
     setCookies(res, userTokens);
 
