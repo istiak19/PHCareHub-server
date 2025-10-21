@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";;
 import sendResponse from "../../shared/sendResponse";
@@ -20,7 +21,7 @@ const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) 
     console.log(result)
 
     sendResponse(res, {
-        statusCode: 200,
+        statusCode: httpStatus.OK,
         success: true,
         message: 'Webhook req send successfully',
         data: result,
