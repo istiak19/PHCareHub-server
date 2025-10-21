@@ -5,6 +5,7 @@ import sendResponse from "../../shared/sendResponse";
 import { patientService } from './patient.service';
 import pick from '../../helpers/pick';
 import { userFilterableFields } from '../user/user.constant';
+import { JwtPayload } from 'jsonwebtoken';
 
 const getAllPatient = catchAsync(async (req: Request, res: Response) => {
     const filters = pick(req.query, userFilterableFields) // searching , filtering
@@ -44,7 +45,8 @@ const createPatient = catchAsync(async (req: Request, res: Response) => {
 
 const updatePatient = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
-    const patient = await patientService.updatePatient(id, req);
+    const user = req.user as JwtPayload;
+    const patient = await patientService.updatePatient(id, req.body, user);
 
     sendResponse(res, {
         success: true,

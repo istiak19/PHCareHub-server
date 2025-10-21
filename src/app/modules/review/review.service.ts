@@ -60,6 +60,11 @@ const createReview = async (token: JwtPayload, payload: IReview) => {
     return reviewData;
 };
 
+const getAllReview = async () => {
+
+};
+
 export const reviewService = {
-    createReview
+    createReview,
+    getAllReview
 };

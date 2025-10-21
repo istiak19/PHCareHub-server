@@ -11,7 +11,7 @@ const router = Router();
 router.get("/", patientController.getAllPatient);
 router.post("/create-patient", fileUploader.upload.single("file"), validateRequest(UserValidation.createPatientValidation), patientController.createPatient);
 router.get("/:id", patientController.getByPatient);
-router.patch("/:id", fileUploader.upload.single("file"), patientController.updatePatient);
+router.patch("/:id", checkAuth(role.patient), patientController.updatePatient);
 router.delete("/:id", checkAuth(role.admin), patientController.deletePatient);
 
 export const patientRouter = router;
