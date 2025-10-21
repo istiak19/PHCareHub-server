@@ -26,7 +26,7 @@ const getAllSpecialties = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteSpecialties = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id;
     const result = await SpecialtiesService.deleteSpecialties(id);
     sendResponse(res, {
         statusCode: httpStatus.OK,

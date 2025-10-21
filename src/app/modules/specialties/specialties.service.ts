@@ -22,7 +22,7 @@ const getAllSpecialties = async () => {
     return {
         meta: { total },
         data: result
-    }
+    };
 };
 
 const deleteSpecialties = async (id: string) => {
