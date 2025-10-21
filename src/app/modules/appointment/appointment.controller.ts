@@ -13,7 +13,7 @@ const createAppointment = catchAsync(async (req: Request, res: Response) => {
 
     sendResponse(res, {
         success: true,
-        statusCode: httpStatus.OK,
+        statusCode: httpStatus.CREATED,
         message: "Appointment created successfully!",
         data: appointment
     });
@@ -28,7 +28,7 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "Doctors retrieved successfully!",
+        message: "Appointment retrieved successfully!",
         data: doctor
     });
 });
