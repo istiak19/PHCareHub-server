@@ -45,18 +45,19 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
 //     });
 // });
 
-// const updateDoctor = catchAsync(async (req: Request, res: Response) => {
-//     const id = req.params.id;
-//     const info = req.body;
-//     const doctor = await doctorService.updateDoctor(id, info);
+const updateStatusAppointment = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+    const info = req.body;
+    const appointment = await appointmentService.updateStatusAppointment(decodedToken, id, info);
 
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: httpStatus.OK,
-//         message: "Doctor updated successfully!",
-//         data: doctor
-//     });
-// });
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Appointment updated successfully!",
+        data: appointment
+    });
+});
 
 // const deleteDoctor = catchAsync(async (req: Request, res: Response) => {
 //     const id = req.params.id;
@@ -72,5 +73,6 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
 
 export const appointmentController = {
     createAppointment,
-    getMyAppointment
+    getMyAppointment,
+    updateStatusAppointment
 };

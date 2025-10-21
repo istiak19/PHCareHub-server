@@ -1,3 +1,4 @@
+import httpStatus from 'http-status';
 import { role } from './../../../constants/roles';
 import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
@@ -5,7 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { stripe } from "../../helpers/stripe";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { FilterParams } from "../../../constants";
-import { Prisma } from "@prisma/client";
+import { AppointmentStatus, Prisma } from "@prisma/client";
+import { AppError } from '../../errors/AppError';
 
 const createAppointment = async (token: JwtPayload, payload: { doctorId: string, scheduleId: string }) => {
     const patientData = await prisma.patient.findUniqueOrThrow({
@@ -144,7 +146,36 @@ const getMyAppointment = async (token: JwtPayload, params: FilterParams, options
     };
 };
 
+const updateStatusAppointment = async (token: JwtPayload, id: string, info: { status: AppointmentStatus }) => {
+    const doctorData = await prisma.doctor.findUniqueOrThrow({
+        where: {
+            email: token.email
+        }
+    });
+
+    const appointmentData = await prisma.appointment.findUniqueOrThrow({
+        where: { id },
+        include: {
+            doctor: true
+        }
+    });
+
+    if (token.role === role.doctor) {
+        if (!(doctorData.email === appointmentData.doctor.email)) {
+            throw new AppError(httpStatus.BAD_REQUEST, "This is your not appointment");
+        };
+    };
+
+    const result = await prisma.appointment.update({
+        where: { id },
+        data: { status: info.status }
+    });
+
+    return result;
+};
+
 export const appointmentService = {
     createAppointment,
-    getMyAppointment
+    getMyAppointment,
+    updateStatusAppointment
 };
