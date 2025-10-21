@@ -6,6 +6,7 @@ import calculatePagination, { IOptions } from '../../helpers/paginationHelper';
 import { FilterParams } from '../../../constants';
 import { Prisma } from '@prisma/client';
 import { Gender } from '../user/user.interface';
+import { role } from '../../../constants/roles';
 
 const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: string[] }) => {
     const doctorData = await prisma.doctor.findUniqueOrThrow({
@@ -31,69 +32,68 @@ const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: st
 };
 
 const getDoctorSchedule = async (user: JwtPayload, params: FilterParams, options: IOptions) => {
-    const doctorData = await prisma.doctor.findUnique({
-        where: { email: user.email },
-    });
-
-    if (!doctorData) {
-        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
-    };
 
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
-    const { startDateTime: filterStartDateTime, endDateTime: filterEndDateTime, name, email, gender, designation, currentWorkingPlace } = params;
+    const { startDateTime, endDateTime, name, email, gender, designation, currentWorkingPlace } = params;
 
-    const whereConditions: Prisma.DoctorSchedulesWhereInput = {
-        doctorId: doctorData.id
-    };;
+    const whereConditions: Prisma.DoctorSchedulesWhereInput = {};
 
-    if (filterStartDateTime || filterEndDateTime) {
+    if (user.role === role.doctor) {
+        const doctorData = await prisma.doctor.findUnique({
+            where: { email: user.email },
+        });
+
+        if (!doctorData) {
+            throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
+        };
+
+        whereConditions.doctorId = doctorData.id;
+    };
+
+    // show only available schedules
+    if (user.role === role.patient) {
+        whereConditions.isBook = false;
+    };
+
+    if (startDateTime || endDateTime) {
         whereConditions.schedule = {};
 
-        if (filterStartDateTime) {
+        if (startDateTime) {
             whereConditions.schedule.startDateTime = {
-                gte: filterStartDateTime,
+                gte: new Date(startDateTime),
             };
-        };
-
-        if (filterEndDateTime) {
+        }
+        if (endDateTime) {
             whereConditions.schedule.endDateTime = {
-                lte: filterEndDateTime,
+                lte: new Date(endDateTime),
             };
-        };
-    } else if (name || email || gender || designation || currentWorkingPlace) {
+        }
+    };
+
+    if (name || email || gender || designation || currentWorkingPlace) {
         whereConditions.doctor = {};
 
         if (name) {
-            whereConditions.doctor.name = {
-                contains: name,
-                mode: "insensitive",
-            };
+            whereConditions.doctor.name = { contains: name, mode: "insensitive" };
         };
-
         if (email) {
-            whereConditions.doctor.email = {
-                contains: email,
-                mode: "insensitive",
-            };
+            whereConditions.doctor.email = { contains: email, mode: "insensitive" };
         };
-
         if (designation) {
             whereConditions.doctor.designation = {
                 contains: designation,
                 mode: "insensitive",
             };
         };
-
         if (currentWorkingPlace) {
             whereConditions.doctor.currentWorkingPlace = {
                 contains: currentWorkingPlace,
                 mode: "insensitive",
             };
         };
-
         if (gender) {
             whereConditions.doctor.gender = gender as Gender;
-        };
+        }
     };
 
     const doctorSchedules = await prisma.doctorSchedules.findMany({
