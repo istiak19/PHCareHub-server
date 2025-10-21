@@ -69,6 +69,12 @@ const getAllDoctor = async (params: FilterParams, options: IOptions) => {
                 include: {
                     schedule: true
                 }
+            },
+            Review: {
+                select: {
+                    rating: true,
+                    comment: true
+                }
             }
         }
     });
@@ -98,7 +104,8 @@ const getByDoctor = async (id: string) => {
                 include: {
                     schedule: true
                 }
-            }
+            },
+            Review: true
         },
     });
 
