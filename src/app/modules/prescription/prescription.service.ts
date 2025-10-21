@@ -39,6 +39,31 @@ const createPrescription = async (user: JwtPayload, payload: Partial<Prescriptio
     return result;
 };
 
+const getMyPrescription = async (user: JwtPayload) => {
+    const isExistPatient = await prisma.patient.findUnique({
+        where: {
+            email: user.email
+        }
+    });
+
+    if (!isExistPatient) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
+    };
+
+    const result = await prisma.prescription.findMany({
+        where: {
+            patientId: isExistPatient.id
+        },
+        include: {
+            patient: true,
+            doctor: true
+        }
+    });
+
+    return result;
+};
+
 export const prescriptionService = {
-    createPrescription
+    createPrescription,
+    getMyPrescription
 };
