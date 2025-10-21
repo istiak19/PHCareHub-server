@@ -188,13 +188,13 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
 };
 
 const deleteSchedule = async (token: JwtPayload, id: string) => {
-    const doctorData = await prisma.doctor.findUnique({
+    const userData = await prisma.admin.findUnique({
         where: {
             email: token.email
         }
     });
 
-    if (!doctorData) {
+    if (!userData) {
         throw new AppError(httpStatus.BAD_REQUEST, "User not found");
     };
 
