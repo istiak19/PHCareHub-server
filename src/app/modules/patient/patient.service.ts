@@ -95,11 +95,11 @@ const createPatient = async (req: Request) => {
 };
 
 const updatePatient = async (id: string, req: Request) => {
-    const isExistDoctor = await prisma.patient.findUnique({
+    const isExistPatient = await prisma.patient.findUnique({
         where: { id }
     });
 
-    if (!isExistDoctor) {
+    if (!isExistPatient) {
         throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
     };
 

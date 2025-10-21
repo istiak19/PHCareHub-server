@@ -24,6 +24,19 @@ const getMyPrescription = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
+        message: "Prescriptions retrieved successfully!",
+        data: result
+    });
+});
+
+const getByMyPrescription = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user as JwtPayload;
+    const id = req.params.id;
+    const result = await prescriptionService.getByMyPrescription(user, id);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
         message: "Prescription retrieved successfully!",
         data: result
     });
@@ -31,5 +44,6 @@ const getMyPrescription = catchAsync(async (req: Request, res: Response) => {
 
 export const prescriptionController = {
     createPrescription,
-    getMyPrescription
+    getMyPrescription,
+    getByMyPrescription
 };

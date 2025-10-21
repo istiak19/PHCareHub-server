@@ -63,7 +63,33 @@ const getMyPrescription = async (user: JwtPayload) => {
     return result;
 };
 
+const getByMyPrescription = async (user: JwtPayload, id: string) => {
+    const isExistPatient = await prisma.patient.findUnique({
+        where: {
+            email: user.email
+        }
+    });
+
+    if (!isExistPatient) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
+    };
+
+    const result = await prisma.prescription.findUnique({
+        where: {
+            patientId: isExistPatient.id,
+            id
+        },
+        include: {
+            patient: true,
+            doctor: true
+        }
+    });
+
+    return result;
+};
+
 export const prescriptionService = {
     createPrescription,
-    getMyPrescription
+    getMyPrescription,
+    getByMyPrescription
 };
