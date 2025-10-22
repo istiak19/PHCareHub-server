@@ -8,10 +8,10 @@ import { Prisma } from '@prisma/client';
 import { Gender } from '../user/user.interface';
 import { role } from '../../../constants/roles';
 
-const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: string[] }) => {
+const createDoctorSchedule = async (token: JwtPayload, payload: { scheduleIds: string[] }) => {
     const doctorData = await prisma.doctor.findUniqueOrThrow({
         where: {
-            email: user.email
+            email: token.email
         }
     });
 
@@ -31,70 +31,51 @@ const createDoctorSchedule = async (user: JwtPayload, payload: { scheduleIds: st
     return doctorSchedule;
 };
 
-const getDoctorSchedule = async (user: JwtPayload, params: FilterParams, options: IOptions) => {
-
+const getAllDoctorSchedule = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
-    const { startDateTime, endDateTime, name, email, gender, designation, currentWorkingPlace } = params;
+    const { searchTerm, ...filterData } = params;
 
-    const whereConditions: Prisma.DoctorSchedulesWhereInput = {};
+    const isExistUser = await prisma.user.findUnique({
+        where: {
+            email: token.email
+        },
+    });
 
-    if (user.role === role.doctor) {
-        const doctorData = await prisma.doctor.findUnique({
-            where: { email: user.email },
+    if (!isExistUser) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
+    const andConditions: Prisma.DoctorSchedulesWhereInput[] = [];
+
+    if (searchTerm) {
+        andConditions.push({
+            doctor: {
+                name: {
+                    contains: searchTerm,
+                    mode: 'insensitive',
+                },
+            },
         });
+    }
 
-        if (!doctorData) {
-            throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
-        };
-
-        whereConditions.doctorId = doctorData.id;
-    };
-
-    // show only available schedules
-    if (user.role === role.patient) {
-        whereConditions.isBook = false;
-    };
-
-    if (startDateTime || endDateTime) {
-        whereConditions.schedule = {};
-
-        if (startDateTime) {
-            whereConditions.schedule.startDateTime = {
-                gte: new Date(startDateTime),
-            };
+    if (Object.keys(filterData).length > 0) {
+        if (typeof filterData.isBook === 'string' && filterData.isBook === 'true') {
+            filterData.isBook = true;
+        } else if (typeof filterData.isBook === 'string' && filterData.isBook === 'false') {
+            filterData.isBook = false;
         }
-        if (endDateTime) {
-            whereConditions.schedule.endDateTime = {
-                lte: new Date(endDateTime),
-            };
-        }
-    };
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        });
+    }
 
-    if (name || email || gender || designation || currentWorkingPlace) {
-        whereConditions.doctor = {};
-
-        if (name) {
-            whereConditions.doctor.name = { contains: name, mode: "insensitive" };
-        };
-        if (email) {
-            whereConditions.doctor.email = { contains: email, mode: "insensitive" };
-        };
-        if (designation) {
-            whereConditions.doctor.designation = {
-                contains: designation,
-                mode: "insensitive",
-            };
-        };
-        if (currentWorkingPlace) {
-            whereConditions.doctor.currentWorkingPlace = {
-                contains: currentWorkingPlace,
-                mode: "insensitive",
-            };
-        };
-        if (gender) {
-            whereConditions.doctor.gender = gender as Gender;
-        }
-    };
+    const whereConditions: Prisma.DoctorSchedulesWhereInput = andConditions.length > 0 ? {
+        AND: andConditions
+    } : {};
 
     const doctorSchedules = await prisma.doctorSchedules.findMany({
         where: whereConditions,
@@ -123,21 +104,121 @@ const getDoctorSchedule = async (user: JwtPayload, params: FilterParams, options
     };
 };
 
-const deleteDoctorSchedule = async (user: JwtPayload, id: string) => {
-    const doctorData = await prisma.doctor.findUnique({
+const getDoctorSchedule = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
+    const isExistDoctor = await prisma.doctor.findUnique({
         where: {
-            email: user.email
+            email: token.email
+        },
+    });
+
+    if (!isExistDoctor) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
+    };
+
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
+    const { startDate, endDate, ...filterData } = params;
+
+    const andConditions: Prisma.DoctorSchedulesWhereInput[] = [];
+
+    if (startDate && endDate) {
+        andConditions.push({
+            AND: [
+                {
+                    schedule: {
+                        startDateTime: {
+                            gte: startDate
+                        }
+                    }
+                },
+                {
+                    schedule: {
+                        endDateTime: {
+                            lte: endDate
+                        }
+                    }
+                }
+            ]
+        })
+    };
+
+
+    if (Object.keys(filterData).length > 0) {
+
+        if (typeof filterData.isBook === 'string' && filterData.isBook === 'true') {
+            filterData.isBook = true
+        }
+        else if (typeof filterData.isBook === 'string' && filterData.isBook === 'false') {
+            filterData.isBook= false
+        };
+
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => {
+                return {
+                    [key]: {
+                        equals: (filterData as any)[key],
+                    },
+                };
+            }),
+        });
+    }
+
+    const whereConditions: Prisma.DoctorSchedulesWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const doctorSchedules = await prisma.doctorSchedules.findMany({
+        where: whereConditions,
+        include: {
+            doctor: true,
+            schedule: true,
+        },
+        skip,
+        take: limit,
+        orderBy: {
+            schedule: {
+                [sortBy || "startDateTime"]: sortOrder || "asc",
+            },
+        },
+    });
+
+    const total = await prisma.doctorSchedules.count({
+        where: whereConditions,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: doctorSchedules,
+    };
+};
+
+const deleteDoctorSchedule = async (token: JwtPayload, id: string) => {
+    const isExistDoctor = await prisma.doctor.findUnique({
+        where: {
+            email: token.email
         }
     });
 
-    if (!doctorData) {
+    if (!isExistDoctor) {
         throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
+    const isBookedSchedule = await prisma.doctorSchedules.findFirst({
+        where: {
+            doctorId: isExistDoctor.id,
+            scheduleId: id,
+            isBook: true
+        }
+    });
+
+    if (isBookedSchedule) {
+        throw new AppError(httpStatus.BAD_REQUEST, "You can not delete the schedule because of the schedule is already booked!");
     };
 
     const doctorSchedule = await prisma.doctorSchedules.delete({
         where: {
             doctorId_scheduleId: {
-                doctorId: doctorData.id,
+                doctorId: isExistDoctor.id,
                 scheduleId: id,
             }
         }
@@ -149,5 +230,6 @@ const deleteDoctorSchedule = async (user: JwtPayload, id: string) => {
 export const doctorScheduleService = {
     createDoctorSchedule,
     getDoctorSchedule,
+    getAllDoctorSchedule,
     deleteDoctorSchedule
 };

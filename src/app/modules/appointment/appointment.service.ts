@@ -95,6 +95,72 @@ const createAppointment = async (token: JwtPayload, payload: { doctorId: string,
     return result;
 };
 
+const getAllAppointment = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
+    const { patientEmail, doctorEmail, ...filterData } = params;
+
+    const isExistUser = await prisma.user.findUnique({
+        where: {
+            email: token.email
+        }
+    });
+
+    if (!isExistUser) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User not found");
+    };
+
+    const andConditions: Prisma.AppointmentWhereInput[] = [];
+
+    if (patientEmail) {
+        andConditions.push({
+            patient: {
+                email: patientEmail
+            }
+        });
+    };
+
+    if (doctorEmail) {
+        andConditions.push({
+            doctor: {
+                email: doctorEmail
+            }
+        });
+    };
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map(key => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    };
+
+    const whereConditions: Prisma.AppointmentWhereInput = andConditions.length > 0 ? {
+        AND: andConditions
+    } : {};
+
+    const result = await prisma.appointment.findMany({
+        skip,
+        take: limit,
+        where: whereConditions,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            doctor: true,
+            patient: true
+        }
+    });
+
+    const total = await prisma.appointment.count({ where: whereConditions });
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
+};
+
 const getMyAppointment = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
     const { ...filterData } = params;
@@ -177,5 +243,6 @@ const updateStatusAppointment = async (token: JwtPayload, id: string, info: { st
 export const appointmentService = {
     createAppointment,
     getMyAppointment,
+    getAllAppointment,
     updateStatusAppointment
 };

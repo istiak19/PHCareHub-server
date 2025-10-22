@@ -5,6 +5,7 @@ import { role } from "../../../constants/roles";
 
 const router = Router();
 
+router.get("/", checkAuth(role.admin), appointmentController.getAllAppointment);
 router.get("/my-appointments", checkAuth(role.patient, role.doctor), appointmentController.getMyAppointment);
 router.post("/", checkAuth(role.patient), appointmentController.createAppointment);
 router.patch("/:id", checkAuth(role.doctor, role.admin), appointmentController.updateStatusAppointment);
