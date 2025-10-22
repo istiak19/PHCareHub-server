@@ -21,7 +21,7 @@ const createDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
 
 const getAllDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
-    const filters = pick(req.query, ["startDateTime", "endDateTime", "name", "email", "gender", "designation", "currentWorkingPlace"]);
+    const filters = pick(req.query, ['searchTerm', 'isBook', 'doctorId']);
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
     const schedule = await doctorScheduleService.getAllDoctorSchedule(decodedToken, filters, options);
 
@@ -35,7 +35,7 @@ const getAllDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
 
 const getDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
-    const filters = pick(req.query, ["startDateTime", "endDateTime", "name", "email", "gender", "designation", "currentWorkingPlace"]);
+    const filters = pick(req.query, ['startDate', 'endDate', 'isBook']);
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
     const schedule = await doctorScheduleService.getDoctorSchedule(decodedToken, filters, options);
 
