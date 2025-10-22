@@ -12,7 +12,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { IPatient } from './patient.interface';
 
 const getAllPatient = async (params: FilterParams, options: IOptions) => {
-    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
     const { searchTerm, ...filterData } = params;
 
     const andConditions: Prisma.PatientWhereInput[] = [];

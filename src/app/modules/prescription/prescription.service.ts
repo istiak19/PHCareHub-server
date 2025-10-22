@@ -4,6 +4,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
 import { role } from "../../../constants/roles";
 import { AppError } from "../../errors/AppError";
+import calculatePagination, { IOptions } from '../../helpers/paginationHelper';
 
 const createPrescription = async (user: JwtPayload, payload: Partial<Prescription>) => {
     const appointmentData = await prisma.appointment.findUniqueOrThrow({
@@ -39,28 +40,48 @@ const createPrescription = async (user: JwtPayload, payload: Partial<Prescriptio
     return result;
 };
 
-const getMyPrescription = async (user: JwtPayload) => {
-    const isExistPatient = await prisma.patient.findUnique({
-        where: {
-            email: user.email
-        }
-    });
+const getMyPrescription = async (user: JwtPayload, options: IOptions) => {
+    const { page, limit, skip } = calculatePagination(options);
 
-    if (!isExistPatient) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
-    };
+    // way-1
+    // const isExistPatient = await prisma.patient.findUnique({
+    //     where: {
+    //         email: user.email
+    //     }
+    // });
+
+    // if (!isExistPatient) {
+    //     throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
+    // };
 
     const result = await prisma.prescription.findMany({
         where: {
-            patientId: isExistPatient.id
+            patient: {
+                email: user.email
+            }
         },
+        skip,
+        take: limit,
+        orderBy: { updateAt: "desc" },
         include: {
             patient: true,
             doctor: true
         }
     });
 
-    return result;
+    const total = await prisma.prescription.count({
+        where: {
+            patient: {
+                email: user.email
+            }
+        }
+    });
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
 };
 
 const getByMyPrescription = async (user: JwtPayload, id: string) => {
