@@ -8,6 +8,9 @@ import calculatePagination, { IOptions } from '../../helpers/paginationHelper';
 import { IDoctorUpdateInput } from './doctor.interface';
 import { openai } from '../../helpers/openRouter';
 import { extractJsonFromMessage } from '../../helpers/extractJsonFromMessage';
+import { JwtPayload } from 'jsonwebtoken';
+import { Request } from 'express';
+import { fileUploader } from '../../helpers/fileUploader';
 
 const getAllDoctor = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -166,9 +169,42 @@ const updateDoctor = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
     });
 };
 
+const updateDoctorProfile = async (token: JwtPayload, id: string, req: Request) => {
+    const isExistDoctor = await prisma.doctor.findUnique({
+        where: {
+            email: token.email,
+            isDeleted: false
+        }
+    });
+
+    if (!isExistDoctor) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
+    };
+
+    let parsedData: any = {};
+    if (req.body.data) {
+        parsedData = JSON.parse(req.body.data);
+    };
+
+    if (req.file) {
+        const uploadResult = await fileUploader.uploadToCloudinary(req.file);
+        parsedData.profilePhoto = uploadResult?.secure_url
+    };
+
+    const result = await prisma.doctor.update({
+        where: { id },
+        data: parsedData
+    });
+
+    return result;
+};
+
 const deleteDoctor = async (id: string) => {
     const doctor = await prisma.doctor.delete({
-        where: { id }
+        where: {
+            id,
+            isDeleted: false
+        }
     });
 
     return doctor;
@@ -224,5 +260,6 @@ export const doctorService = {
     getByDoctor,
     updateDoctor,
     deleteDoctor,
+    updateDoctorProfile,
     getAISuggestions
 };

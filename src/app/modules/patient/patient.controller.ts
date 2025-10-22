@@ -43,6 +43,19 @@ const createPatient = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updatePatientProfile = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const user = req.user as JwtPayload;
+    const patient = await patientService.updatePatientProfile(user, id, req);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Patient profile update successfully!",
+        data: patient
+    });
+});
+
 const updatePatient = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
     const user = req.user as JwtPayload;
@@ -72,6 +85,7 @@ export const patientController = {
     getAllPatient,
     getByPatient,
     createPatient,
+    updatePatientProfile,
     updatePatient,
     deletePatient
 };

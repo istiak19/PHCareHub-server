@@ -5,6 +5,7 @@ import sendResponse from "../../shared/sendResponse";
 import { doctorService } from './doctor.service';
 import { doctorFilterableFields } from '../user/user.constant';
 import pick from '../../helpers/pick';
+import { JwtPayload } from 'jsonwebtoken';
 
 const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
     const filters = pick(req.query, doctorFilterableFields) // searching , filtering
@@ -44,6 +45,19 @@ const updateDoctor = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateDoctorProfile = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const user = req.user as JwtPayload;
+    const doctor = await doctorService.updateDoctorProfile(user, id, req);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctor profile updated successfully!",
+        data: doctor
+    });
+});
+
 const deleteDoctor = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
     const doctor = await doctorService.deleteDoctor(id);
@@ -72,5 +86,6 @@ export const doctorController = {
     getByDoctor,
     updateDoctor,
     deleteDoctor,
+    updateDoctorProfile,
     getAISuggestions
 };
