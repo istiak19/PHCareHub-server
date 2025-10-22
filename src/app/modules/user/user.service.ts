@@ -63,7 +63,12 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
 
 const getMeUser = async (email: string) => {
     const result = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
+        include: {
+            doctor: true,
+            patient: true,
+            admin: true
+        }
     });
 
     return result;

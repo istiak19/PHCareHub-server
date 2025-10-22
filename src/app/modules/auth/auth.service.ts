@@ -3,9 +3,10 @@ import { AppError } from "../../errors/AppError";
 import { prisma } from '../../shared/prisma';
 import bcrypt from "bcryptjs";
 import { UserStatus } from '@prisma/client';
-import { createResetPassToken } from '../../utils/userCreateToken';
 import config from '../../../config';
 import sendMailer from '../../utils/sendMailer';
+import { generateToken, verifyToken } from '../../utils/jwt';
+import { Secret } from 'jsonwebtoken';
 
 const login = async (payload: { email: string, password: string }) => {
     if (!payload.email || !payload.password) {
@@ -31,6 +32,29 @@ const login = async (payload: { email: string, password: string }) => {
     return user;
 };
 
+const getMeUser = async (session: any) => {
+    const accessToken = session.accessToken;
+    const decodedToken = verifyToken(accessToken, config.jwt.JWT_SECRET as Secret);
+
+    const result = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: decodedToken.email,
+            status: UserStatus.ACTIVE
+        },
+    });
+
+    const { id, email, role, needPasswordChange, status } = result;
+
+    return {
+        id,
+        email,
+        role,
+        needPasswordChange,
+        status
+    }
+};
+
+
 const forgotPassword = async (payload: { email: string }) => {
     const isExistUser = await prisma.user.findUnique({
         where: {
@@ -43,7 +67,15 @@ const forgotPassword = async (payload: { email: string }) => {
         throw new AppError(httpStatus.BAD_REQUEST, "User not found");
     };
 
-    const resetPassToken = createResetPassToken(isExistUser);
+    const resetPassToken = generateToken(
+        {
+            email: isExistUser.email,
+            role: isExistUser.role,
+        },
+        config.jwt.RESET_PASS_SECRET as string,
+        config.jwt.RESET_PASS_TOKEN_EXPIRES_IN as string
+    );
+
     const resetPassLink = config.jwt.RESET_PASS_LINK + `?userId=${isExistUser.id}&token=${resetPassToken}`;
 
     await sendMailer(
@@ -82,5 +114,6 @@ const forgotPassword = async (payload: { email: string }) => {
 
 export const authService = {
     login,
+    getMeUser,
     forgotPassword
 };

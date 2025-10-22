@@ -5,5 +5,5 @@ export type FilterParams = Record<string, any>;
 export interface JwtUser {
     id: string;
     email: string;
-    role: typeof role[keyof typeof role];
+    role: "ADMIN" | "DOCTOR" | "PATIENT";
 };
