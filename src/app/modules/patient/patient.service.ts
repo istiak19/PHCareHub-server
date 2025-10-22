@@ -96,32 +96,35 @@ const createPatient = async (req: Request) => {
     return result;
 };
 
-// const updatePatient = async (id: string, req: Request) => {
-//     const isExistPatient = await prisma.patient.findUnique({
-//         where: { id }
-//     });
+const updatePatientProfile = async (token: JwtPayload, id: string, req: Request) => {
+    const isExistPatient = await prisma.patient.findUnique({
+        where: {
+            email: token.email,
+            isDeleted: false
+        }
+    });
 
-//     if (!isExistPatient) {
-//         throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
-//     };
+    if (!isExistPatient) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Patient not found");
+    };
 
-//     let parsedData: any = {};
-//     if (req.body.data) {
-//         parsedData = JSON.parse(req.body.data);
-//     };
+    let parsedData: any = {};
+    if (req.body.data) {
+        parsedData = JSON.parse(req.body.data);
+    };
 
-//     if (req.file) {
-//         const uploadResult = await fileUploader.uploadToCloudinary(req.file);
-//         parsedData.profilePhoto = uploadResult?.secure_url
-//     };
+    if (req.file) {
+        const uploadResult = await fileUploader.uploadToCloudinary(req.file);
+        parsedData.profilePhoto = uploadResult?.secure_url
+    };
 
-//     const result = await prisma.patient.update({
-//         where: { id },
-//         data: parsedData
-//     });
+    const result = await prisma.patient.update({
+        where: { id },
+        data: parsedData
+    });
 
-//     return result;
-// };
+    return result;
+};
 
 const updatePatient = async (id: string, payload: IPatient, token: JwtPayload) => {
     const isExistPatient = await prisma.patient.findUnique({
@@ -197,7 +200,7 @@ export const patientService = {
     getAllPatient,
     getByPatient,
     createPatient,
-    // updatePatient,
+    updatePatientProfile,
     updatePatient,
     deletePatient
 };
