@@ -19,6 +19,20 @@ const createDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getAllDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
+    const decodedToken = req.user as JwtPayload;
+    const filters = pick(req.query, ["startDateTime", "endDateTime", "name", "email", "gender", "designation", "currentWorkingPlace"]);
+    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
+    const schedule = await doctorScheduleService.getAllDoctorSchedule(decodedToken, filters, options);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Doctor schedules retrieved successfully!",
+        data: schedule
+    });
+});
+
 const getDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
     const filters = pick(req.query, ["startDateTime", "endDateTime", "name", "email", "gender", "designation", "currentWorkingPlace"]);
@@ -48,6 +62,7 @@ const deleteDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
 
 export const doctorScheduleController = {
     createDoctorSchedule,
+    getAllDoctorSchedule,
     getDoctorSchedule,
     deleteDoctorSchedule
 };
