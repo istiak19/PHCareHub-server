@@ -80,11 +80,25 @@ const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
+    const userInfo = req.user as JwtPayload;
+    const id = req.params.id;
+    const user = await userService.updateAdminProfile(userInfo, id, req);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Admin profile update successfully!",
+        data: user
+    });
+});
+
 export const userController = {
     getAllUser,
     getMyProfile,
     getByUser,
     createAdmin,
     createDoctor,
+    updateAdminProfile,
     changeProfileStatus
 };

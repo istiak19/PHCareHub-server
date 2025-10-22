@@ -226,11 +226,41 @@ const changeProfileStatus = async (token: JwtPayload, id: string, payload: IStat
     return updateUserStatus;
 };
 
+const updateAdminProfile = async (token: JwtPayload, id: string, req: Request) => {
+    const isExistAdmin = await prisma.admin.findUnique({
+        where: {
+            email: token.email,
+            isDeleted: false
+        }
+    });
+
+    if (!isExistAdmin) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Admin not found");
+    };
+
+    let parsedData: any = {};
+    if (req.body.data) {
+        parsedData = JSON.parse(req.body.data);
+    };
+
+    if (req.file) {
+        const uploadResult = await fileUploader.uploadToCloudinary(req.file);
+        parsedData.profilePhoto = uploadResult?.secure_url
+    };
+
+    const result = await prisma.admin.update({
+        where: { id },
+        data: parsedData
+    });
+
+    return result;
+};
+
 export const userService = {
     getAllUser,
     getMyProfile,
     getByUser,
-    // createPatient,
+    updateAdminProfile,
     createAdmin,
     createDoctor,
     changeProfileStatus
