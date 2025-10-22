@@ -9,6 +9,8 @@ import { doctorSearchableFields, userSearchableFields } from "./user.constant";
 import { AppError } from "../../errors/AppError";
 import { JwtPayload } from 'jsonwebtoken';
 import { FilterParams } from '../../../constants';
+import { role } from '../../../constants/roles';
+import { IStatus } from './user.interface';
 
 const getAllUser = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -61,12 +63,46 @@ const getAllUser = async (params: FilterParams, options: IOptions) => {
     };
 };
 
-const getMeUser = async (email: string) => {
+const getMyProfile = async (email: string) => {
     const result = await prisma.user.findUnique({
-        where: { email }
+        where: { email },
+        select: {
+            id: true,
+            email: true,
+            needPasswordChange: true,
+            role: true,
+            status: true
+        }
     });
 
-    return result;
+    let profileData;
+
+    if (role.patient === result?.role) {
+        profileData = await prisma.patient.findUnique({
+            where: {
+                email: result.email
+            }
+        });
+    }
+    else if (role.doctor === result?.role) {
+        profileData = await prisma.doctor.findUnique({
+            where: {
+                email: result.email
+            }
+        });
+    }
+    else if (role.admin === result?.role) {
+        profileData = await prisma.admin.findUnique({
+            where: {
+                email: result.email
+            }
+        });
+    };
+
+    return {
+        ...result,
+        ...profileData
+    };
 };
 
 const getByUser = async (token: JwtPayload, id: string) => {
@@ -177,11 +213,25 @@ const createDoctor = async (req: Request) => {
     return result;
 };
 
+const changeProfileStatus = async (token: JwtPayload, id: string, payload: IStatus) => {
+    await prisma.user.findUniqueOrThrow({
+        where: { id }
+    });
+
+    const updateUserStatus = await prisma.user.update({
+        where: { id },
+        data: payload
+    });
+
+    return updateUserStatus;
+};
+
 export const userService = {
     getAllUser,
-    getMeUser,
+    getMyProfile,
     getByUser,
     // createPatient,
     createAdmin,
-    createDoctor
+    createDoctor,
+    changeProfileStatus
 };

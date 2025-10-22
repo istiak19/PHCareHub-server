@@ -4,6 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { JwtPayload } from "jsonwebtoken";
 import { prescriptionService } from './prescription.service';
+import pick from '../../helpers/pick';
 
 const createPrescription = catchAsync(async (req: Request, res: Response) => {
     const user = req.user as JwtPayload;
@@ -19,7 +20,8 @@ const createPrescription = catchAsync(async (req: Request, res: Response) => {
 
 const getMyPrescription = catchAsync(async (req: Request, res: Response) => {
     const user = req.user as JwtPayload;
-    const result = await prescriptionService.getMyPrescription(user);
+    const options = pick(req.query, ["page", "limit"]);
+    const result = await prescriptionService.getMyPrescription(user, options);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

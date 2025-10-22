@@ -24,6 +24,31 @@ const login = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getMeUser = catchAsync(async (req: Request, res: Response) => {
+    // const decodedToken = req.user as JwtPayload;
+    const userSession = req.cookies;
+    const user = await authService.getMeUser(userSession);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User retrieved successfully!",
+        data: user
+    });
+});
+
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+    const userInfo = req.body;
+    const user = await authService.forgotPassword(userInfo);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Check your email!",
+        data: user
+    });
+});
+
 const logout = catchAsync(async (req: Request, res: Response) => {
     res.cookie("accessToken", "", {
         httpOnly: true,
@@ -51,5 +76,7 @@ const logout = catchAsync(async (req: Request, res: Response) => {
 
 export const authController = {
     login,
-    logout
+    logout,
+    forgotPassword,
+    getMeUser
 };
