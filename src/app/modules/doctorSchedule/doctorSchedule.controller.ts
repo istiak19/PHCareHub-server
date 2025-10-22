@@ -42,7 +42,7 @@ const getDoctorSchedule = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "Doctor schedule retrieved successfully!",
+        message: "My doctor schedule retrieved successfully!",
         data: schedule
     });
 });

@@ -105,6 +105,15 @@ const getAllDoctorSchedule = async (token: JwtPayload, params: FilterParams, opt
 };
 
 const getDoctorSchedule = async (token: JwtPayload, params: FilterParams, options: IOptions) => {
+    const isExistDoctor = await prisma.doctor.findUnique({
+        where: {
+            email: token.email
+        },
+    });
+
+    if (!isExistDoctor) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Doctor not found");
+    };
 
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
     const { startDate, endDate, ...filterData } = params;
@@ -138,7 +147,7 @@ const getDoctorSchedule = async (token: JwtPayload, params: FilterParams, option
         if (typeof filterData.isBook === 'string' && filterData.isBook === 'true') {
             filterData.isBook = true
         }
-        else if (typeof filterData.isBooked === 'string' && filterData.isBook === 'false') {
+        else if (typeof filterData.isBook === 'string' && filterData.isBook === 'false') {
             filterData.isBook= false
         };
 

@@ -3,6 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
 import { AppError } from "../../errors/AppError";
 import { IReview } from './review.interface';
+import calculatePagination, { IOptions } from '../../helpers/paginationHelper';
 
 const createReview = async (token: JwtPayload, payload: IReview) => {
     const isExistPatient = await prisma.patient.findUnique({
@@ -60,8 +61,25 @@ const createReview = async (token: JwtPayload, payload: IReview) => {
     return reviewData;
 };
 
-const getAllReview = async () => {
+const getAllReview = async (options: IOptions) => {
+    const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options);
+    const result = await prisma.review.findMany({
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+            doctor: true,
+            patient: true
+        }
+    });
 
+    const total = await prisma.appointment.count();
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: result
+    };
 };
 
 export const reviewService = {
