@@ -20,6 +20,19 @@ export const userCreateToken = (user: JwtUser) => {
     };
 };
 
+export const createResetPassToken = (user: JwtUser): string => {
+    const jwtPayload = {
+        email: user.email,
+        role: user.role,
+    };
+
+    return generateToken(
+        jwtPayload,
+        config.jwt.RESET_PASS_SECRET as string,
+        config.jwt.RESET_PASS_TOKEN_EXPIRES_IN as string
+    );
+};
+
 
 // export const createNewAccessTokenWithRefreshToken = async (refreshToken: string) => {
 //     const verifiedRefreshToken = verifyToken(refreshToken, envVars.JWT.JWT_REFRESH_SECRET) as JwtPayload;

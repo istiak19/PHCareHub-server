@@ -24,6 +24,18 @@ const login = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+    const userInfo = req.body;
+    const user = await authService.forgotPassword(userInfo);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Check your email!",
+        data: user
+    });
+});
+
 const logout = catchAsync(async (req: Request, res: Response) => {
     res.cookie("accessToken", "", {
         httpOnly: true,
@@ -51,5 +63,6 @@ const logout = catchAsync(async (req: Request, res: Response) => {
 
 export const authController = {
     login,
-    logout
+    logout,
+    forgotPassword
 };
