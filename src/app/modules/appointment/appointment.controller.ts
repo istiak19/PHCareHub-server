@@ -19,6 +19,20 @@ const createAppointment = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getAllAppointment = catchAsync(async (req: Request, res: Response) => {
+    const filters = pick(req.query, ["paymentStatus", "status", "patientEmail", "doctorEmail"]) // searching , filtering
+    const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
+    const decodedToken = req.user as JwtPayload;
+    const doctor = await appointmentService.getAllAppointment(decodedToken, filters, options);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Appointments retrieved successfully!",
+        data: doctor
+    });
+});
+
 const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
     const filters = pick(req.query, ["paymentStatus", "status"]) // searching , filtering
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
@@ -32,18 +46,6 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
         data: doctor
     });
 });
-
-// const getByDoctor = catchAsync(async (req: Request, res: Response) => {
-//     const id = req.params.id;
-//     const doctor = await doctorService.getByDoctor(id);
-
-//     sendResponse(res, {
-//         success: true,
-//         statusCode: httpStatus.OK,
-//         message: "Doctor retrieved successfully!",
-//         data: doctor
-//     });
-// });
 
 const updateStatusAppointment = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -74,5 +76,6 @@ const updateStatusAppointment = catchAsync(async (req: Request, res: Response) =
 export const appointmentController = {
     createAppointment,
     getMyAppointment,
+    getAllAppointment,
     updateStatusAppointment
 };
