@@ -67,10 +67,24 @@ const createDoctor = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
+    const userInfo = req.user as JwtPayload;
+    const id = req.params.id;
+    const user = await userService.changeProfileStatus(userInfo, id, req.body);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "User profile status changed!",
+        data: user
+    });
+});
+
 export const userController = {
     getAllUser,
     getMyProfile,
     getByUser,
     createAdmin,
     createDoctor,
+    changeProfileStatus
 };

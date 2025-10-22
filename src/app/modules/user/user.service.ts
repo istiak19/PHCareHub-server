@@ -10,6 +10,7 @@ import { AppError } from "../../errors/AppError";
 import { JwtPayload } from 'jsonwebtoken';
 import { FilterParams } from '../../../constants';
 import { role } from '../../../constants/roles';
+import { IStatus } from './user.interface';
 
 const getAllUser = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -212,11 +213,25 @@ const createDoctor = async (req: Request) => {
     return result;
 };
 
+const changeProfileStatus = async (token: JwtPayload, id: string, payload: IStatus) => {
+    await prisma.user.findUniqueOrThrow({
+        where: { id }
+    });
+
+    const updateUserStatus = await prisma.user.update({
+        where: { id },
+        data: payload
+    });
+
+    return updateUserStatus;
+};
+
 export const userService = {
     getAllUser,
     getMyProfile,
     getByUser,
     // createPatient,
     createAdmin,
-    createDoctor
+    createDoctor,
+    changeProfileStatus
 };
