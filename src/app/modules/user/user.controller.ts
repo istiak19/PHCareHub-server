@@ -20,14 +20,14 @@ const getAllUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getMeUser = catchAsync(async (req: Request, res: Response) => {
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
-    const user = await userService.getMeUser(decodedToken.email);
+    const user = await userService.getMyProfile(decodedToken.email);
 
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "User retrieved successfully!",
+        message: "My profile retrieved successfully!",
         data: user
     });
 });
@@ -69,7 +69,7 @@ const createDoctor = catchAsync(async (req: Request, res: Response) => {
 
 export const userController = {
     getAllUser,
-    getMeUser,
+    getMyProfile,
     getByUser,
     createAdmin,
     createDoctor,
