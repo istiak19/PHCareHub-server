@@ -41,17 +41,38 @@ const getMeUser = async (session: any) => {
             email: decodedToken.email,
             status: UserStatus.ACTIVE
         },
+        include: {
+            admin: true,
+            patient: true,
+            doctor: true
+        }
     });
 
     const { id, email, role, needPasswordChange, status } = result;
 
+    let name = "";
+    let profilePhoto = "";
+
+    if (role === "ADMIN" && result.admin) {
+        name = result.admin.name;
+        profilePhoto = result.admin.profilePhoto || "";
+    } else if (role === "DOCTOR" && result.doctor) {
+        name = result.doctor.name;
+        profilePhoto = result.doctor.profilePhoto || "";
+    } else if (role === "PATIENT" && result.patient) {
+        name = result.patient.name;
+        profilePhoto = result.patient.profilePhoto || "";
+    };
+
     return {
         id,
+        name,
         email,
         role,
+        profilePhoto,
         needPasswordChange,
         status
-    }
+    };
 };
 
 
