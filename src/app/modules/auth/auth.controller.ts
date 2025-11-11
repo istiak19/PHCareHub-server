@@ -5,6 +5,7 @@ import sendResponse from '../../shared/sendResponse';
 import { authService } from './auth.service';
 import { userCreateToken } from '../../utils/userCreateToken';
 import { setCookies } from '../../utils/setCookies';
+import { JwtPayload } from 'jsonwebtoken';
 
 const login = catchAsync(async (req: Request, res: Response) => {
     const userInfo = req.body;
@@ -25,9 +26,9 @@ const login = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMeUser = catchAsync(async (req: Request, res: Response) => {
-    // const decodedToken = req.user as JwtPayload;
-    const userSession = req.cookies;
-    const user = await authService.getMeUser(userSession);
+    const decodedToken = req.user as JwtPayload;
+    // const userSession = req.cookies;
+    const user = await authService.getMeUser(decodedToken);
 
     sendResponse(res, {
         success: true,
