@@ -16,6 +16,23 @@ const login = async (payload: { email: string, password: string }) => {
     const user = await prisma.user.findUnique({
         where: {
             email: payload.email
+        },
+        include: {
+            admin: {
+                select: {
+                    name: true
+                }
+            },
+            doctor: {
+                select: {
+                    name: true
+                }
+            },
+            patient: {
+                select: {
+                    name: true
+                }
+            },
         }
     });
 
@@ -29,12 +46,21 @@ const login = async (payload: { email: string, password: string }) => {
         throw new AppError(httpStatus.UNAUTHORIZED, "Incorrect password.");
     };
 
-    return user;
+    const name = user.admin?.name || user.doctor?.name || user.patient?.name || "Unknown";
+
+    return {
+        id: user.id,
+        needPasswordChange: user.needPasswordChange,
+        status: user.status,
+        email: user.email,
+        name,
+        role: user.role as "ADMIN" | "DOCTOR" | "PATIENT",
+    };
 };
 
-const getMeUser = async (session: any) => {
-    const accessToken = session.accessToken;
-    const decodedToken = verifyToken(accessToken, config.jwt.JWT_SECRET as Secret);
+const getMeUser = async (decodedToken: any) => {
+    // const accessToken = session.accessToken;
+    // const decodedToken = verifyToken(accessToken, config.jwt.JWT_SECRET as Secret);
 
     const result = await prisma.user.findUniqueOrThrow({
         where: {

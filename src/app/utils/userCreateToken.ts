@@ -7,6 +7,7 @@ import { JwtUser } from '../../constants';
 
 export const userCreateToken = (user: JwtUser) => {
     const jwtPayload = {
+        name: user.name,
         userId: user.id,
         email: user.email,
         role: user.role
