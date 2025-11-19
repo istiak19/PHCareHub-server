@@ -20,35 +20,48 @@ const createAdminValidation = z.object({
 });
 
 const createDoctorValidation = z.object({
-    password: z.string().nonempty("Password is required"),
+    password: z.string({
+        error: "Password is required",
+    }),
     doctor: z.object({
-        name: z.string().nonempty("Name is required"),
-        email: z
-            .string()
-            .email("Invalid email format")
-            .nonempty("Email is required"),
-        contactNumber: z.string().nonempty("Contact number is required"),
+        name: z.string({
+            error: "Name is required!",
+        }),
+        email: z.string({
+            error: "Email is required!",
+        }),
+        contactNumber: z.string({
+            error: "Contact Number is required!",
+        }),
         address: z.string().optional(),
-        registrationNumber: z.string().nonempty("Registration number is required"),
-
-        // Convert strings to numbers and validate
-        experience: z
-            .preprocess((val) => (val ? Number(val) : undefined), z.number().optional()),
-        appointmentFee: z.preprocess(
-            (val) => (val ? Number(val) : undefined),
-            z.number().refine((val) => val !== undefined, {
-                message: "Appointment fee is required",
+        registrationNumber: z.string({
+            error: "Reg number is required",
+        }),
+        experience: z.number().optional(),
+        gender: z.enum([Gender.MALE, Gender.FEMALE]),
+        appointmentFee: z.number({
+            error: "Appointment fee is required",
+        }),
+        qualification: z.string({
+            error: "Qualification is required",
+        }),
+        currentWorkingPlace: z.string({
+            error: "Current working place is required!",
+        }),
+        designation: z.string({
+            error: "Designation is required!",
+        }),
+        // NEW: Add specialties array for doctor creation
+        specialties: z
+            .array(
+                z.string().uuid({
+                    message: "Each specialty must be a valid UUID",
+                })
+            )
+            .min(1, {
+                message: "At least one specialty is required",
             })
-        ),
-
-        gender: z.enum([Gender.MALE, Gender.FEMALE]).refine(
-            (val) => !!val,
-            { message: "Gender is required" }
-        ),
-
-        qualification: z.string().nonempty("Qualification is required"),
-        currentWorkingPlace: z.string().nonempty("Current working place is required"),
-        designation: z.string().nonempty("Designation is required"),
+            .optional(),
     }),
 });
 
