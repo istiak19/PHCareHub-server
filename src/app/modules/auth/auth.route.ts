@@ -9,5 +9,6 @@ router.get("/me", checkAuth(role.admin, role.doctor, role.patient), authControll
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 router.post("/forgot-password", authController.forgotPassword);
+router.post("/reset-password", authController.resetPassword);
 
 export const authRouter = router;

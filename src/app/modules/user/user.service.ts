@@ -1,9 +1,8 @@
 import httpStatus from 'http-status';
 import { Request } from "express";
-import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
 import { fileUploader } from "../../helpers/fileUploader";
-import { Prisma, UserRole } from "@prisma/client";
+import { Prisma, UserRole, UserStatus } from "@prisma/client";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
 import { doctorSearchableFields, userSearchableFields } from "./user.constant";
 import { AppError } from "../../errors/AppError";
@@ -11,6 +10,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { FilterParams } from '../../../constants';
 import { role } from '../../../constants/roles';
 import { IStatus } from './user.interface';
+import { prisma } from '../../shared/prisma';
 
 const getAllUser = async (params: FilterParams, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -281,41 +281,56 @@ const changeProfileStatus = async (token: JwtPayload, id: string, payload: IStat
     return updateUserStatus;
 };
 
-const updateAdminProfile = async (token: JwtPayload, id: string, req: Request) => {
-    const isExistAdmin = await prisma.admin.findUnique({
+const updateProfile = async (user: JwtPayload, req: Request) => {
+    const userInfo = await prisma.user.findUniqueOrThrow({
         where: {
-            email: token.email,
-            isDeleted: false
+            email: user?.email,
+            status: UserStatus.ACTIVE
         }
     });
 
-    if (!isExistAdmin) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Admin not found");
-    };
+    const file = req.file;
+    if (file) {
+        const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
+        req.body.profilePhoto = uploadToCloudinary?.secure_url;
+    }
 
-    let parsedData: any = {};
-    if (req.body.data) {
-        parsedData = JSON.parse(req.body.data);
-    };
+    let profileInfo;
 
-    if (req.file) {
-        const uploadResult = await fileUploader.uploadToCloudinary(req.file);
-        parsedData.profilePhoto = uploadResult?.secure_url
-    };
+    if (userInfo.role === UserRole.ADMIN) {
+        profileInfo = await prisma.admin.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
+    else if (userInfo.role === UserRole.DOCTOR) {
+        profileInfo = await prisma.doctor.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
+    else if (userInfo.role === UserRole.PATIENT) {
+        profileInfo = await prisma.patient.update({
+            where: {
+                email: userInfo.email
+            },
+            data: req.body
+        })
+    }
 
-    const result = await prisma.admin.update({
-        where: { id },
-        data: parsedData
-    });
+    return { ...profileInfo };
+}
 
-    return result;
-};
 
 export const userService = {
     getAllUser,
     getMyProfile,
     getByUser,
-    updateAdminProfile,
+    updateProfile,
     createAdmin,
     createDoctor,
     changeProfileStatus

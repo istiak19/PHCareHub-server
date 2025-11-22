@@ -14,6 +14,6 @@ router.post("/create-admin", fileUploader.upload.single("file"), validateRequest
 router.post("/create-doctor", fileUploader.upload.single("file"), validateRequest(UserValidation.createDoctorValidation), userController.createDoctor);
 router.get("/:id", checkAuth(role.admin), userController.getByUser);
 router.patch("/:id", checkAuth(role.admin), userController.changeProfileStatus);
-router.patch("/profile/:id", checkAuth(role.admin), fileUploader.upload.single("file"), userController.updateAdminProfile);
+router.patch("/profile", checkAuth(role.admin, role.doctor, role.patient, role.superAdmin), fileUploader.upload.single("file"), userController.updateProfile);
 
 export const userRouter = router;
