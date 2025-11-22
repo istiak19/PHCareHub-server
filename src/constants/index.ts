@@ -4,5 +4,5 @@ export interface JwtUser {
     name: string;
     id: string;
     email: string;
-    role: "ADMIN" | "DOCTOR" | "PATIENT";
+    role: "SUPER_ADMIN" | "ADMIN" | "DOCTOR" | "PATIENT";
 };
