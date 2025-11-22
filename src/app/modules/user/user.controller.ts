@@ -80,15 +80,14 @@ const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const updateAdminProfile = catchAsync(async (req: Request, res: Response) => {
+const updateProfile = catchAsync(async (req: Request, res: Response) => {
     const userInfo = req.user as JwtPayload;
-    const id = req.params.id;
-    const user = await userService.updateAdminProfile(userInfo, id, req);
+    const user = await userService.updateProfile(userInfo, req);
 
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "Admin profile update successfully!",
+        message: "User profile update successfully!",
         data: user
     });
 });
@@ -99,6 +98,6 @@ export const userController = {
     getByUser,
     createAdmin,
     createDoctor,
-    updateAdminProfile,
+    updateProfile,
     changeProfileStatus
 };

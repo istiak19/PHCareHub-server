@@ -67,40 +67,70 @@ const getMeUser = async (decodedToken: any) => {
             email: decodedToken.email,
             status: UserStatus.ACTIVE
         },
-        include: {
-            admin: true,
-            patient: true,
-            doctor: true
+        select: {
+            id: true,
+            email: true,
+            role: true,
+            needPasswordChange: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            admin: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profilePhoto: true,
+                    contactNumber: true,
+                    isDeleted: true,
+                    createdAt: true,
+                    updatedAt: true,
+                }
+            },
+            doctor: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profilePhoto: true,
+                    contactNumber: true,
+                    address: true,
+                    registrationNumber: true,
+                    experience: true,
+                    gender: true,
+                    appointmentFee: true,
+                    qualification: true,
+                    currentWorkingPlace: true,
+                    designation: true,
+                    averageRating: true,
+                    isDeleted: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    doctorSpecialties: {
+                        include: {
+                            specialities: true
+                        }
+                    }
+                }
+            },
+            patient: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    profilePhoto: true,
+                    address: true,
+                    isDeleted: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    patientHealthData: true,
+                }
+            }
         }
     });
 
-    const { id, email, role, needPasswordChange, status } = result;
-
-    let name = "";
-    let profilePhoto = "";
-
-    if (role === "ADMIN" && result.admin) {
-        name = result.admin.name;
-        profilePhoto = result.admin.profilePhoto || "";
-    } else if (role === "DOCTOR" && result.doctor) {
-        name = result.doctor.name;
-        profilePhoto = result.doctor.profilePhoto || "";
-    } else if (role === "PATIENT" && result.patient) {
-        name = result.patient.name;
-        profilePhoto = result.patient.profilePhoto || "";
-    };
-
-    return {
-        id,
-        name,
-        email,
-        role,
-        profilePhoto,
-        needPasswordChange,
-        status
-    };
+    return result;
 };
-
 
 const forgotPassword = async (payload: { email: string }) => {
     const isExistUser = await prisma.user.findUnique({
@@ -159,8 +189,39 @@ const forgotPassword = async (payload: { email: string }) => {
     );
 };
 
+const resetPassword = async (token: string, payload: { id: string, password: string }) => {
+
+    await prisma.user.findUniqueOrThrow({
+        where: {
+            id: payload.id,
+            status: UserStatus.ACTIVE
+        }
+    });
+
+    const isValidToken = verifyToken(token, config.jwt.JWT_SECRET as Secret)
+
+    if (!isValidToken) {
+        throw new AppError(httpStatus.FORBIDDEN, "Forbidden!")
+    }
+
+    // hash password
+    const password = await bcrypt.hash(payload.password, 10);
+
+    // update into database
+    await prisma.user.update({
+        where: {
+            id: payload.id
+        },
+        data: {
+            password,
+            needPasswordChange: false
+        }
+    });
+};
+
 export const authService = {
     login,
     getMeUser,
-    forgotPassword
+    forgotPassword,
+    resetPassword
 };
