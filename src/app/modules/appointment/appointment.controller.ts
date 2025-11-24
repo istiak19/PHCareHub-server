@@ -48,6 +48,20 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getAppointmentById = catchAsync(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const decodedToken = req.user as JwtPayload;
+
+    const appointment = await appointmentService.getAppointmentById(decodedToken, id);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Appointment retrieved successfully!",
+        data: appointment
+    });
+});
+
 const updateStatusAppointment = catchAsync(async (req: Request, res: Response) => {
     const id = req.params.id;
     const decodedToken = req.user as JwtPayload;
@@ -77,6 +91,7 @@ const updateStatusAppointment = catchAsync(async (req: Request, res: Response) =
 export const appointmentController = {
     createAppointment,
     getMyAppointment,
+    getAppointmentById,
     getAllAppointment,
     updateStatusAppointment
 };

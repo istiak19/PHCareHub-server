@@ -227,6 +227,39 @@ const getMyAppointment = async (token: JwtPayload, params: FilterParams, options
     };
 };
 
+const getAppointmentById = async (token: JwtPayload, id: string) => {
+    const appointment = await prisma.appointment.findUniqueOrThrow({
+        where: { id },
+        include: {
+            doctor: true,
+            patient: {
+                include: {
+                    medicalReport: true,
+                    patientHealthData: true
+                }
+            },
+            schedule: true,
+            prescription: true,
+            review: true
+        }
+    });
+
+    // --- Access Control ---
+    // Patient: Only own appointment
+    if (token.role === role.patient && appointment.patient.email !== token.email) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not allowed to view this appointment.");
+    }
+
+    // Doctor: Only own appointments
+    if (token.role === role.doctor && appointment.doctor.email !== token.email) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not allowed to view this appointment.");
+    }
+
+    // Admin: can view anything (no restriction)
+
+    return appointment;
+};
+
 const updateStatusAppointment = async (token: JwtPayload, id: string, info: { status: AppointmentStatus }) => {
     const doctorData = await prisma.doctor.findUniqueOrThrow({
         where: {
@@ -305,6 +338,7 @@ const cancelUnpaidAppointments = async () => {
 export const appointmentService = {
     createAppointment,
     getMyAppointment,
+    getAppointmentById,
     getAllAppointment,
     updateStatusAppointment,
     cancelUnpaidAppointments
