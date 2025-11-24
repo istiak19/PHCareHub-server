@@ -4,7 +4,7 @@ import { addMinutes, addHours, format } from "date-fns";
 import { ISchedule } from "./schedule.interface";
 import { JwtPayload } from "jsonwebtoken";
 import calculatePagination, { IOptions } from "../../helpers/paginationHelper";
-import { Prisma } from "@prisma/client";
+import { Prisma, Schedule } from "@prisma/client";
 import { FilterParams } from "../../../constants";
 import { AppError } from "../../errors/AppError";
 // import { zonedTimeToUtc } from "date-fns-tz";
@@ -187,6 +187,16 @@ const scheduleForDoctor = async (token: JwtPayload, params: FilterParams, option
     };
 };
 
+const getByIdSchedule = async (id: string): Promise<Schedule | null> => {
+    const result = await prisma.schedule.findUnique({
+        where: {
+            id,
+        },
+    });
+
+    return result;
+};
+
 const deleteSchedule = async (token: JwtPayload, id: string) => {
     const userData = await prisma.admin.findUnique({
         where: {
@@ -208,5 +218,6 @@ const deleteSchedule = async (token: JwtPayload, id: string) => {
 export const scheduleService = {
     createSchedule,
     scheduleForDoctor,
+    getByIdSchedule,
     deleteSchedule
 };
