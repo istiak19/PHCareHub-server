@@ -31,6 +31,17 @@ const scheduleForDoctor = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getByIdSchedule = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await scheduleService.getByIdSchedule(id);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Schedule retrieval successfully',
+        data: result,
+    });
+});
+
 const deleteSchedule = catchAsync(async (req: Request, res: Response) => {
     const decodedToken = req.user as JwtPayload;
     const id=req.params.id;
@@ -47,5 +58,6 @@ const deleteSchedule = catchAsync(async (req: Request, res: Response) => {
 export const scheduleController = {
     createSchedule,
     scheduleForDoctor,
+    getByIdSchedule,
     deleteSchedule
 };

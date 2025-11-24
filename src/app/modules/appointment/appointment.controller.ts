@@ -43,7 +43,8 @@ const getMyAppointment = catchAsync(async (req: Request, res: Response) => {
         success: true,
         statusCode: httpStatus.OK,
         message: "Appointment retrieved successfully!",
-        data: doctor
+        data: doctor.data,
+        meta: doctor.meta
     });
 });
 

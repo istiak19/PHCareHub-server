@@ -200,7 +200,22 @@ const getMyAppointment = async (token: JwtPayload, params: FilterParams, options
         take: limit,
         where: whereConditions,
         orderBy: { [sortBy]: sortOrder },
-        include: token.role === role.doctor ? { patient: true } : { doctor: true }
+        include: token?.role === role.patient ? {
+            doctor: true,
+            schedule: true,
+            review: true,
+            prescription: true
+        } : {
+            patient: {
+                include: {
+                    medicalReport: true,
+                    patientHealthData: true
+                },
+            },
+            schedule: true,
+            prescription: true,
+            review: true,
+        }
     });
 
     const total = await prisma.appointment.count({ where: whereConditions });

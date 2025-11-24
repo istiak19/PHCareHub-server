@@ -7,6 +7,7 @@ const router = Router();
 
 router.get("/", checkAuth(role.doctor, role.admin), scheduleController.scheduleForDoctor);
 router.post("/create-schedule", checkAuth(role.admin), scheduleController.createSchedule);
+router.get("/:id", checkAuth(role.admin, role.doctor, role.patient), scheduleController.getByIdSchedule);
 router.delete("/:id", checkAuth(role.admin), scheduleController.deleteSchedule);
 
 export const scheduleRouter = router;
